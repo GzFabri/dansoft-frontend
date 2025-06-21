@@ -1,78 +1,88 @@
 <template>
-  <v-dialog v-model="modelValue" max-width="500px">
-    <v-card>
-      <v-card-title>
-        {{ producto && producto.id ? 'Editar Producto' : 'Agregar Producto' }}
-      </v-card-title>
-      <v-card-text>
-        <v-form @submit.prevent="save">
-          <v-text-field v-model="form.nombre" label="Nombre" required />
-          <v-text-field v-model="form.precio" label="Precio" type="number" required />
-          <v-text-field v-model="form.stock" label="Stock" type="number" required />
-          <v-select
-            v-model="form.categoriaId"
-            :items="categorias"
-            item-title="nombre"
-            item-value="id"
-            label="Categoría"
-            required
-          />
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text @click="close">Cancelar</v-btn>
-        <v-btn color="primary" @click="save">Guardar</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <v-form @submit.prevent="onSubmit">
+    <v-text-field v-model="form.nombre" label="Nombre" required />
+    <v-text-field v-model="form.descripcion" label="Descripción" required />
+    <v-text-field v-model.number="form.precio" label="Precio" type="number" required />
+    <v-text-field v-model.number="form.stock" label="Stock" type="number" required />
+
+    <v-select
+      v-model="form.categoriaId"
+      :items="categorias"
+      item-title="nombre"
+      item-value="id"
+      label="Categoría"
+      required
+    />
+
+    <v-btn type="submit" color="primary" block>
+      {{ productoId ? 'Actualizar' : 'Crear' }}
+    </v-btn>
+  </v-form>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import productoService from '../services/productoService'
-const props = defineProps({
-  modelValue: Boolean,
-  producto: Object,
-  categorias: Array,
-})
-const emit = defineEmits(['update:modelValue', 'refresh'])
+import { ref, onMounted, watchEffect } from 'vue'
+import {
+  createProducto,
+  updateProducto,
+  getProductoById
+} from '@/services/productoService'
+import axios from 'axios'
+
+interface Props {
+  productoId?: number | null
+  onSuccess?: () => void
+}
+const props = defineProps<Props>()
 
 const form = ref({
   nombre: '',
-  precio: 0,
-  stock: 0,
-  categoriaId: null,
+  descripcion: '',
+  precio: '',
+  stock: '',
+  categoriaId: null
 })
 
-watch(
-  () => props.producto,
-  (nuevo) => {
-    if (nuevo) {
-      form.value = {
-        nombre: nuevo.nombre,
-        precio: nuevo.precio,
-        stock: nuevo.stock,
-        categoriaId: nuevo.categoria?.id || null,
-      }
-    } else {
-      form.value = { nombre: '', precio: 0, stock: 0, categoriaId: null }
-    }
-  },
-  { immediate: true },
-)
+const categorias = ref([])
 
-function close() {
-  emit('update:modelValue', false)
+const cargarProducto = async () => {
+  if (props.productoId) {
+    const { data } = await getProductoById(props.productoId)
+    form.value = {
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      precio: data.precio,
+      stock: data.stock,
+      categoriaId: data.categoriaId
+    }
+  } else {
+    form.value = {
+      nombre: '',
+      descripcion: '',
+      precio: '',
+      stock: '',
+      categoriaId: null
+    }
+  }
 }
 
-async function save() {
-  if (props.producto && props.producto.id) {
-    await productoService.update(props.producto.id, form.value)
+const cargarCategorias = async () => {
+  const { data } = await axios.get('http://localhost:3333/categorias')
+  categorias.value = data
+}
+
+onMounted(() => {
+  cargarCategorias()
+  cargarProducto()
+})
+watchEffect(cargarProducto)
+
+const onSubmit = async () => {
+  if (props.productoId) {
+    await updateProducto(props.productoId, form.value)
   } else {
-    await productoService.create(form.value)
+    await createProducto(form.value)
   }
-  emit('refresh')
-  close()
+  props.onSuccess?.()
 }
 </script>
