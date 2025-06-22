@@ -16,7 +16,7 @@ const routes = [
     component: categoriaView,
   },
   {
-    path: '/venta',
+    path: '/ventas',
     name: 'ventas',
     component: ventaView,
   },

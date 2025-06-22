@@ -26,6 +26,9 @@
     </v-row>
 
     <v-data-table :items="ventasFiltradas" :headers="headers">
+      <template #item['producto.nombre']="{ item }">
+        {{ item.producto?.nombre || 'Sin producto' }}
+      </template>
       <template #item.actions="{ item }">
         <div style="display: flex; gap: 8px; justify-content: center">
           <v-btn icon @click="abrirFormulario(item.id)">
@@ -35,9 +38,6 @@
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
-      </template>
-      <template #item['producto.nombre']="{ item }">
-        {{ item.producto?.nombre || 'Sin producto' }}
       </template>
       <template #item.createdAt="{ item }">
         {{ formatFecha(item.createdAt) }}
@@ -77,6 +77,14 @@ const cerrarFormulario = async () => {
   dialog.value = false
   ventaSeleccionada.value = null
   await fetchVentas()
+
+  // Busca la última venta realizada (la más reciente)
+  const ultimaVenta = ventas.value[0]
+  if (ultimaVenta && ultimaVenta.producto && typeof ultimaVenta.producto.stock === 'number') {
+    if (ultimaVenta.producto.stock <= 5) {
+      alert(`¡Atención! El producto "${ultimaVenta.producto.nombre}" tiene solo ${ultimaVenta.producto.stock} unidades en stock.`);
+    }
+  }
 }
 
 const eliminar = async (id: number) => {

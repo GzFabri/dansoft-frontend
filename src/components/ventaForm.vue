@@ -7,14 +7,9 @@
       item-value="id"
       label="Producto"
       required
+      :disabled="!!ventaId"
     />
-    <v-text-field
-      v-model="form.cantidad"
-      label="Cantidad"
-      type="number"
-      min="1"
-      required
-    />
+    <v-text-field v-model.number="form.cantidad" label="Cantidad" type="number" min="1" required />
     <v-btn type="submit" color="primary" block>
       {{ ventaId ? 'Actualizar' : 'Crear' }}
     </v-btn>
@@ -33,7 +28,7 @@ const props = defineProps<{
 
 const form = ref({
   productoId: null,
-  cantidad: 1
+  cantidad: 1,
 })
 
 const productos = ref([])
@@ -43,24 +38,24 @@ const cargarVenta = async () => {
     const { data } = await getVentaById(props.ventaId)
     form.value = {
       productoId: data.productoId,
-      cantidad: data.cantidad
+      cantidad: data.cantidad,
     }
   } else {
     form.value = {
       productoId: null,
-      cantidad: 1
+      cantidad: 1,
     }
   }
 }
 
 const cargarProductos = async () => {
-  const { data } = await axios.get('/productos')
+  const { data } = await axios.get('http://localhost:3333/productos')
   productos.value = data
 }
 
 onMounted(() => {
-  cargarVenta()
   cargarProductos()
+  cargarVenta()
 })
 watchEffect(cargarVenta)
 

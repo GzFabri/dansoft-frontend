@@ -1,32 +1,37 @@
 <template>
-  <v-form @submit.prevent="onSubmit">
-    <v-text-field v-model="form.nombre" label="Nombre" required />
-    <v-text-field v-model="form.descripcion" label="Descripción" required />
-    <v-text-field v-model.number="form.precio" label="Precio" type="number" required />
-    <v-text-field v-model.number="form.stock" label="Stock" type="number" required />
+  <v-container fluid class="pa-4">
+    <v-row>
+      <v-col cols="12">
+        <v-card elevation="4" class="pa-8">
+          <v-form @submit.prevent="onSubmit">
+            <v-text-field v-model="form.nombre" label="Nombre" required />
+            <v-text-field v-model="form.descripcion" label="Descripción" required />
+            <v-text-field v-model.number="form.precio" label="Precio" type="number" required />
+            <v-text-field v-model.number="form.stock" label="Stock" type="number" required />
 
-    <v-select
-      v-model="form.categoriaId"
-      :items="categorias"
-      item-title="nombre"
-      item-value="id"
-      label="Categoría"
-      required
-    />
+            <v-select
+              v-model="form.categoriaId"
+              :items="categorias"
+              item-title="nombre"
+              item-value="id"
+              label="Categoría"
+              required
+            />
 
-    <v-btn type="submit" color="primary" block>
-      {{ productoId ? 'Actualizar' : 'Crear' }}
-    </v-btn>
-  </v-form>
+            <v-btn type="submit" color="primary" block>
+              {{ productoId ? 'Actualizar' : 'Crear' }}
+            </v-btn>
+          </v-form>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
+
 
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from 'vue'
-import {
-  createProducto,
-  updateProducto,
-  getProductoById
-} from '@/services/productoService'
+import { createProducto, updateProducto, getProductoById } from '@/services/productoService'
 import axios from 'axios'
 
 interface Props {
@@ -40,7 +45,7 @@ const form = ref({
   descripcion: '',
   precio: '',
   stock: '',
-  categoriaId: null
+  categoriaId: null,
 })
 
 const categorias = ref([])
@@ -53,7 +58,7 @@ const cargarProducto = async () => {
       descripcion: data.descripcion,
       precio: data.precio,
       stock: data.stock,
-      categoriaId: data.categoriaId
+      categoriaId: data.categoriaId,
     }
   } else {
     form.value = {
@@ -61,7 +66,7 @@ const cargarProducto = async () => {
       descripcion: '',
       precio: '',
       stock: '',
-      categoriaId: null
+      categoriaId: null,
     }
   }
 }
